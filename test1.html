@@ -12,17 +12,24 @@
     var t = 0 
 function requestData(chart) {
     
+    
+    $.getJSON('http://localhost:8051/ajax/new_data/').success(function(data) {
+        //here `data` will be your `result` in your python application
+        console.log(data)
+    });
+    
+    
     //var t = (new Date()).getTime();
     t = t + 1;
-    var y1 = 2 + t + Math.random();
-    var y2 = 3 + t + Math.random();
+    var y1 = 2 +  Math.random();
+    var y2 = 3 +  Math.random();
     shift = chart.series[0].data.length > 20
     
     console.log('Pt')
     console.log(shift)
-    chart.series[0].addPoint([t, y1], true, shift);
-    chart.series[1].addPoint([t, y2], true, shift);
-    
+    chart.series[0].addPoint([t, y1], false, shift);
+    chart.series[1].addPoint([t, y2], false, shift);
+    chart.redraw()
     //alert('x');
     setTimeout( function(){requestData(chart)},500);
 }
