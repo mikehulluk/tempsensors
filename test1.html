@@ -1,0 +1,83 @@
+<html>
+    <head>
+
+ 
+<script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"></script>
+<script src="http://code.highcharts.com/highcharts.js"></script>
+<!--<script src="http://code.highcharts.com/modules/exporting.js"></script> -->
+
+
+<script>
+    
+    var t = 0 
+function requestData(chart) {
+    
+    //var t = (new Date()).getTime();
+    t = t + 1;
+    var y1 = 2 + t + Math.random();
+    var y2 = 3 + t + Math.random();
+    shift = chart.series[0].data.length > 20
+    
+    console.log('Pt')
+    console.log(shift)
+    chart.series[0].addPoint([t, y1], true, shift);
+    chart.series[1].addPoint([t, y2], true, shift);
+    
+    //alert('x');
+    setTimeout( function(){requestData(chart)},500);
+}
+
+    
+    
+    
+    
+$(document).ready(function() { 
+    chart1 = new Highcharts.Chart({
+        chart: {
+            renderTo: 'container',
+            type: 'line',
+            events: {
+                    load: function() {requestData(this)}
+                },
+        },
+        
+         
+                
+        title: {
+            text: 'Fruit Consumption'
+        },
+        xAxis: {
+            title: { 
+                text: 'time'
+            }
+            //categories: ['Apples', 'Bananas', 'Oranges']
+        },
+        yAxis: {
+            title: {
+                text: 'Temperature'
+            }
+        },
+        series: [{
+            name: 'T1',
+            data: [] //[ [0,0], [1,2]]
+        }, {
+            name: 'T2',
+            data: [] // [[0,0], [1,2]]
+        }]
+    });
+});
+
+/**
+ * Request data from the server, add it to the graph and set a timeout to request again
+ */
+
+
+</script>
+
+</head>
+
+
+<body>
+<div id="container" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
+</body>
+</html>
