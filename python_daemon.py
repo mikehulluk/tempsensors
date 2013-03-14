@@ -1,6 +1,8 @@
 from wsgiref.simple_server import make_server
 import json
 
+import temperature_db
+
 with open('test1.html') as f:
     index_html = f.read()
 
