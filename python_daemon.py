@@ -42,7 +42,8 @@ def application(environ, start_response):
 
 
 
-httpd = make_server('localhost',8051, application)
+httpd = make_server('',8051, application)
+#httpd = make_server('localhost',8051, application)
 
 httpd.serve_forever()
 
