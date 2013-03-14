@@ -4,7 +4,8 @@ import inspect
 import os
 
 from sqlalchemy import Column, Integer, String, Float, ForeignKey#, relationship, backref
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship, backref, sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 
 
 
@@ -15,7 +16,6 @@ db_file = os.path.join(module_dir, 'temps.sqllite')
 
 engine = sqlalchemy.create_engine('sqlite:///%s'%db_file)
 
-from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 
@@ -23,14 +23,29 @@ Base = declarative_base()
 class Sensor(Base):
     __tablename__ = 'sensors'
     id = Column(Integer, primary_key=True)
-    sensor = Column(String)
+    address = Column(String)
 
-class User(Base):
-    __tablename__ = 'users'
+    @classmethod
+    def get_or_create(cls, session,  address):
+        r=session.query(Sensor).filter_by(address=address).all()
+        if len(r) == 0:
+            s = Sensor(address=address)
+            session.add(s)
+            session.commit()
+            return s
+        else:
+            assert len(r) == 1
+            return r[0]
+
+
+class Recording(Base):
+    __tablename__ = 'recordings'
 
     id = Column(Integer, primary_key=True)
     time = Column(Integer)
     temperature = Column(Float)
+    sensor_id = Column(Integer, ForeignKey('sensors.id'))
+
     sensor = relationship("Sensor", backref=backref('recordings', order_by=time))
 
     def __init__(self, sensor, time, temperature):
@@ -44,5 +59,7 @@ class User(Base):
 
 
 Base.metadata.create_all(engine)
+Session = sessionmaker(bind=engine)
+#session = Session()
 
 print engine

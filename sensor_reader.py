@@ -1,21 +1,62 @@
 
+import sys
+import os
+import time
+import numpy as np
+
+sensor_addresses = [
+"/sys/bus/w1/devices/28-000004623b55/w1_slave",
+]
 
 
-s1_src = "/sys/bus/w1/devices/28-000004623b55/w1_slave"
-
-
+def _get_temperature(src):
+    with open(s1_src) as s1:
+        d = s1.read()
+    t = d.split('\n')[1].split(" ")[9].split('=')[1]
+    return float(t)/1000.
 
 def get_temperature(src):
-	with open(s1_src) as s1:
-		d = s1.read()
-	#print d
-	t = d.split('\n')[1].split(" ")[9].split('=')[1]
-	return float(t)/1000.
+    return np.random.random()
 
-while True:
-	
-	t1 = get_temperature(s1_src)
-	print 'Sensor temperature:', t1
-	
-	#print t
 
+
+
+
+
+def main():
+    import temperature_db
+    session = temperature_db.Session()
+
+    # Sensor objects:
+    sensors = {}
+    for sensor_address in sensor_addresses:
+        sensors[sensor_address] = temperature_db.Sensor.get_or_create(address=sensor_address, session=session)
+
+    # Print Sensors found:
+    for sensor in session.query(temperature_db.Sensor).all():
+        print sensor
+
+    # Main loop:
+    t_start = int(time.time())
+    while True:
+        # Pause:
+        time.sleep(1)
+        t = int(time.time())
+
+        # Update the display:
+        print '\rRecording (t=%d)' % (t-t_start),
+        sys.stdout.flush()
+
+        # Update all the temperature recordings:
+        for sensor_address, sensor in sensors.items():
+            temp = get_temperature(sensor_address)
+
+            rec = temperature_db.Recording(sensor = sensor, time = t, temperature=temp)
+            session.add(rec)
+
+        # Write to the database
+        session.commit()
+
+
+if __name__=='__main__':
+    main()
