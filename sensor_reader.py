@@ -43,13 +43,12 @@ def main():
         time.sleep(1)
         t = int(time.time())
 
-        # Update the display:
-        print '\rRecording (t=%d)' % (t-t_start),
-        sys.stdout.flush()
 
         # Update all the temperature recordings:
+        temps = []
         for sensor_address, sensor in sensors.items():
             temp = get_temperature(sensor_address)
+            temps.append(temp)
 
             rec = temperature_db.Recording(sensor = sensor, time = t, temperature=temp)
             session.add(rec)
@@ -57,6 +56,11 @@ def main():
         # Write to the database
         session.commit()
 
+
+        # Update the display:
+        print '\rRecording (t=%d) [%s]' % ((t-t_start), ','.join('%2.2f'%t for t in temps ) ) ,
+
+        sys.stdout.flush()
 
 if __name__=='__main__':
     main()
