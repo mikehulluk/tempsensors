@@ -2,10 +2,24 @@
 import sqlalchemy
 import inspect
 import os
+import numpy as np
+import cStringIO
+import bz2
+
 
 from sqlalchemy import Column, Integer, String, Float, Text, LargeBinary, ForeignKey#, relationship, backref
 from sqlalchemy.orm import relationship, backref, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+
+
+
+
+def array_to_str(arr):
+    op = cStringIO.StringIO()
+    np.save(op, arr)
+    return op.getvalue()
+
+
 
 
 
@@ -63,16 +77,25 @@ class RecordingArray(Base):
     end_time = Column(Integer)
 
     sensor_id = Column(Integer, ForeignKey('sensors.id'))
-    sensor = relationship("Sensor", backref=backref('rawrecordings', order_by=end_time))
+    sensor = relationship("Sensor", backref=backref('recordings_arrays', order_by=end_time))
     
-    data = Column(LargeBinary)
+    data_bz2 = Column(LargeBinary)
+    
+    n_entries = Column(Integer)
 
-    def __init__(self, sensor, start_time, end_time, data):
-        self.sensor = sensor
-        self.start_time = start_time
-        self.end_time = end_time
+    def __init__(self, sensor,  data):
+        #print data.shape
+        assert len(data.shape) == 2
+        assert data.shape[1] == 2
         
-        self.data = data
+        self.sensor = sensor
+        self.start_time = int(data[0,1])
+        self.end_time = int(data[-1,1])
+        self.n_entries = data.shape[0]
+        self.data_bz2 = bz2.compress(array_to_str(data))
+
+        
+        
     
 
 

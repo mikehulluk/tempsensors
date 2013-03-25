@@ -7,6 +7,10 @@ import datetime
 import random 
 
 
+
+import temperature_utils
+
+
 sensor_addresses = [
     "/sys/bus/w1/devices/28-000004623b55/w1_slave",
     "/sys/bus/w1/devices/28-00000462dfd4/w1_slave",
@@ -76,11 +80,11 @@ def main():
 
     # Main loop:
     print 'Starting main loop'
-    t_start = int(time.time())
+    t_start = temperature_utils.get_time() 
     while True:
         # Pause:
         #time.sleep(1)
-        t = int(time.time())
+        t = temperature_utils.get_time()
 
 
         # Update all the temperature recordings:
