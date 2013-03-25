@@ -3,7 +3,7 @@ import sqlalchemy
 import inspect
 import os
 
-from sqlalchemy import Column, Integer, String, Float, ForeignKey#, relationship, backref
+from sqlalchemy import Column, Integer, String, Float, Text, LargeBinary, ForeignKey#, relationship, backref
 from sqlalchemy.orm import relationship, backref, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -38,25 +38,52 @@ class Sensor(Base):
             return r[0]
 
 
-class Recording(Base):
-    __tablename__ = 'recordings'
+class RawRecording(Base):
+    __tablename__ = 'rawrecordings'
 
     id = Column(Integer, primary_key=True)
     time = Column(Integer)
     temperature = Column(Float)
     sensor_id = Column(Integer, ForeignKey('sensors.id'))
 
-    sensor = relationship("Sensor", backref=backref('recordings', order_by=time))
+    sensor = relationship("Sensor", backref=backref('raw_recordings', order_by=time))
 
     def __init__(self, sensor, time, temperature):
         self.sensor = sensor
         self.time = time
         self.temperature = temperature
 
-    def __repr__(self):
-           return "<User('%s','%s', '%s')>" % (self.name, self.fullname, self.password)
+    
 
 
+class RecordingArray(Base):
+    __tablename__ = 'recordingarrays'
+    id = Column(Integer, primary_key=True)
+    start_time = Column(Integer)
+    end_time = Column(Integer)
+
+    sensor_id = Column(Integer, ForeignKey('sensors.id'))
+    sensor = relationship("Sensor", backref=backref('rawrecordings', order_by=end_time))
+    
+    data = Column(LargeBinary)
+
+    def __init__(self, sensor, start_time, end_time, data):
+        self.sensor = sensor
+        self.start_time = start_time
+        self.end_time = end_time
+        
+        self.data = data
+    
+
+
+class ErrorRecording(Base):
+    __tablename__ = 'recordingerrors'
+
+    id = Column(Integer, primary_key=True)
+    time = Column(Integer)
+    sensor_id = Column(Integer, ForeignKey('sensors.id'))
+    sensor = relationship("Sensor", backref=backref('errors', order_by=time))
+    text = Column(String(200))
 
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)

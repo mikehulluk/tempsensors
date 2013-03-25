@@ -21,8 +21,9 @@ ax = f.add_subplot(111)
 
 for sensor in sensors:
     print sensor
-    recs = sensor.recordings
+    recs = sensor.raw_recordings
     l = np.array([ (r.time, r.temperature) for r in recs])
+    print l.shape
 
     ax.plot(l[:,0], l[:,1],'x-', label='%s' % sensor.address)
 
