@@ -37,23 +37,23 @@ def get_temperature(src):
     with open(src) as s1:
         d = s1.read()
 
-	
-
-	is_ok = d.split('\n')[0].split(' ')[11] == 'YES'
-    if random.randint(0,10) == 1:
-        is_ok = False
-	#print is_ok
-	
-	if not is_ok:
-		raise BadW1Read(sensorname=src, text=d)
-		
-	
+    
     with open(temp_log_file,'a') as f:
        f.write('Reading from: %s\n'%src)
        f.write('At t=%s\n'%datetime.datetime.now() )
        f.write(d)
        f.write('\n\n')
 
+    is_ok = d.split('\n')[0].split(' ')[11] == 'YES'
+    
+    add_random_noise= False
+    if add_random_noise:
+        if random.randint(0,10) == 1:
+            is_ok = False
+
+    if not is_ok:
+        raise BadW1Read(sensorname=src, text=d)
+    
     t = d.split('\n')[1].split(" ")[9].split('=')[1]
     return float(t)/1000.
 
