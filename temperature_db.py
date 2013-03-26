@@ -5,12 +5,15 @@ import os
 import numpy as np
 import cStringIO
 import bz2
-
+import socket
 
 from sqlalchemy import Column, Integer, String, Float, Text, LargeBinary, ForeignKey#, relationship, backref
 from sqlalchemy.orm import relationship, backref, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
+import matplotlib.dates as md
+import datetime
+from matplotlib import dates
 
 
 
@@ -25,7 +28,15 @@ def array_to_str(arr):
 
 # Figure out the databse name, relative to this file:
 module_dir = os.path.dirname( os.path.abspath(inspect.stack()[0][1]))
-db_file = os.path.join(module_dir, 'temps.sqllite')
+
+
+hostname = socket.gethostname()
+if hostname == 'michael-MacBookPro':
+    db_file = os.path.join(module_dir, 'temps.sqllite.working')
+elif hostname == 'raspberrypi':
+    db_file = os.path.join(module_dir, 'temps.sqllite')
+else:
+    assert False
 
 
 engine = sqlalchemy.create_engine('sqlite:///%s'%db_file)
@@ -50,6 +61,65 @@ class Sensor(Base):
         else:
             assert len(r) == 1
             return r[0]
+
+    def Q_raw_recordings_in_range(self,session, start=None, end=None):
+        q = session.query(RawRecording).filter( RawRecording.sensor_id == self.id)
+        if start is not None:
+            q = q.filter( RawRecording.time >= start) 
+        if end is not None:
+            q = q.filter( RawRecording.time < end) 
+        return q.order_by('time')
+
+    def get_np_array(self, session, start=None, end=None, dates_to_mpl=False):
+        arrays = []
+
+        # Get the recording-arrays:
+        recording_arrays = self.recordings_arrays
+        for ra in recording_arrays:
+            #print ra
+            data=ra.data
+            #print data.shape
+            arrays.append(data)
+
+
+        # Get the raw_recording points:
+        print 'Raw recordings'
+        Q = self.Q_raw_recordings_in_range(session=session, start=start, end=end)
+        rr = np.array([ (r.time, r.temperature) for r in Q.all()])
+        arrays.append(rr)
+
+        print 'Arrays useds'
+        for arr in arrays:
+            print arr.shape
+        final_array = np.concatenate(arrays)
+
+        time_diff = np.diff(final_array[:,0])
+        good_times = ( time_diff > 0 )
+        assert np.all(good_times)
+        #print good_times
+        #print 'All-good>:', np.all( good_times)
+        #print np.where(~good_times)
+        #print final_array.shape
+        #print
+        #print final_array[11426,:]
+        #print final_array[11427,:]
+        #print final_array[11428,:]
+        #print time_diff >
+        if dates_to_mpl:
+            dts = map(datetime.datetime.fromtimestamp, final_array[:,0])
+            fds = dates.date2num(dts) # converted
+            final_array[:,0] = fds
+            #d = np.vstack([fds.T,l[:,1].T]).T
+            
+        return final_array
+
+        #print final_array.shape
+        #bad_indices = np.searchsorted(final_array)
+        #print bad_indices
+
+        assert False
+
+
 
 
 class RawRecording(Base):
@@ -87,13 +157,23 @@ class RecordingArray(Base):
         #print data.shape
         assert len(data.shape) == 2
         assert data.shape[1] == 2
+        assert data.shape[0] > 0
         
         self.sensor = sensor
-        self.start_time = int(data[0,1])
-        self.end_time = int(data[-1,1])
+        self.start_time = int(data[0,0])
+        self.end_time = int(data[-1,0])
         self.n_entries = data.shape[0]
+        data[:,1] *= 1000.
         self.data_bz2 = bz2.compress(array_to_str(data))
 
+    @property
+    def data(self):
+        d = np.load( cStringIO.StringIO(bz2.decompress(self.data_bz2)))
+        d[:,1] /= 1000.
+        return d
+
+    def __repr__(self):
+        return '<Recording Array: %d to %d containing %d recordings>' % (self.start_time, self.end_time, self.n_entries)
         
         
     
