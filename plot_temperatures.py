@@ -51,12 +51,12 @@ for sensor in sensors:
     lp = ax.plot(lsmooth[:,0], lsmooth[:,1],'-', label='%s' % sensor.address, color=lp[0].get_color(), lw=3 )
 
     # Errors
-    errs = sensor.errors
-    err_arr = np.array([ (e.time) for e in errs])
+    #errs = sensor.errors
+    #err_arr = np.array([ (e.time) for e in errs])
     #ax2.plot( err_arr, np.ones_like(err_arr),  'o', color=lp[0].get_color())
     
-    hist_data.append(err_arr)
-    hist_colors.append(lp[0].get_color())
+    #hist_data.append(err_arr)
+    #hist_colors.append(lp[0].get_color())
 
     #break
     

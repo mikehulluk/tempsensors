@@ -6,28 +6,18 @@ import numpy as np
 import os
 
 
- # Use 12-hr blocks:
-seconds_per_block =  60 * 60 * 12
-
-
-
-
+ # Use 24-hr blocks:
+seconds_per_block =  60 * 60 * 24
 
 def get_block_start_time(t):
     return (t // seconds_per_block) * seconds_per_block
 
 
-time_s = temperature_utils.get_time()
-current_block_start = get_block_start_time(time_s)
-
-print 'Time now:', time_s
-print 'Current block start', current_block_start
-print 'Time into current block:', time_s - current_block_start
 
 
 
 
-def _consolidate_sensor(sensor, session):
+def _consolidate_sensor(sensor, session, current_block_start):
 
     # Look for old items:
     old_recs = sensor.Q_raw_recordings_in_range(session=session, end=current_block_start)
@@ -68,29 +58,35 @@ def _consolidate_sensor(sensor, session):
 
 
 
-def consolidate_sensor(sensor, session):
+def consolidate_sensor(sensor, session, current_block_start):
     print 'Sensor', sensor
 
-    while _consolidate_sensor(sensor, session):
+    while _consolidate_sensor(sensor, session, current_block_start):
         pass
 
 
     print '  -- Finshed (%d outstanding)' % len (sensor.raw_recordings)
 
+import temperature_db
 
-def main():
+def consolidate_db(session):
+
+    time_s = temperature_utils.get_time()
+    current_block_start = get_block_start_time(time_s)
+
+    print 'Time now:', time_s
+    print 'Current block start', current_block_start
+    print 'Time into current block:', time_s - current_block_start
 
     print 'Consolidating DB'
     print 'Packing into %ds blocks'% seconds_per_block
 
     original_db_size = os.path.getsize(tdb.db_file)
 
-    import temperature_db
-    session = temperature_db.Session()
 
 
     for sensor in session.query(temperature_db.Sensor).all():
-        consolidate_sensor(sensor, session)
+        consolidate_sensor(sensor, session, current_block_start)
     session.commit()
 
 
@@ -103,6 +99,9 @@ def main():
     print 'DB Size (kB)(Orig): %.2f'% (original_db_size/1000.)
     print 'DB Size (kB)(Final):%.2f'% (final_db_size/1000.)
 
+def main():
+    session = temperature_db.Session()
+    consolidate_db(session=session)
 
 if __name__=='__main__':
     main()

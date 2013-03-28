@@ -6,6 +6,8 @@ import numpy as np
 import cStringIO
 import bz2
 import socket
+import glob 
+
 
 from sqlalchemy import Column, Integer, String, Float, Text, LargeBinary, ForeignKey#, relationship, backref
 from sqlalchemy.orm import relationship, backref, sessionmaker
@@ -28,13 +30,22 @@ def array_to_str(arr):
 
 # Figure out the databse name, relative to this file:
 module_dir = os.path.dirname( os.path.abspath(inspect.stack()[0][1]))
-
+db_data_dir = os.path.join(module_dir, 'db_data')
+if not os.path.exists(db_data_dir):
+    print 'Creating DB data dir:', db_data_dir
+    os.makedirs(db_data_dir)
 
 hostname = socket.gethostname()
 if hostname == 'michael-MacBookPro':
-    db_file = os.path.join(module_dir, 'temps.sqllite.working')
+    #db_file = os.path.join(db_data_dir, 'temps.sqllite.working')
+
+    files = sorted(glob.glob(os.path.join(db_data_dir, 'temps.sqllite2*')) )
+    db_file = files[-1]
+    print files[0], files[-1]
+
+
 elif hostname == 'raspberrypi':
-    db_file = os.path.join(module_dir, 'temps.sqllite')
+    db_file = os.path.join(db_data_dir, 'temps.sqllite')
 else:
     assert False
 
@@ -85,8 +96,9 @@ class Sensor(Base):
         # Get the raw_recording points:
         print 'Raw recordings'
         Q = self.Q_raw_recordings_in_range(session=session, start=start, end=end)
-        rr = np.array([ (r.time, r.temperature) for r in Q.all()])
-        arrays.append(rr)
+        if Q.count() > 0:
+            rr = np.array([ (r.time, r.temperature) for r in Q.all()])
+            arrays.append(rr)
 
         print 'Arrays useds'
         for arr in arrays:
@@ -96,28 +108,13 @@ class Sensor(Base):
         time_diff = np.diff(final_array[:,0])
         good_times = ( time_diff > 0 )
         assert np.all(good_times)
-        #print good_times
-        #print 'All-good>:', np.all( good_times)
-        #print np.where(~good_times)
-        #print final_array.shape
-        #print
-        #print final_array[11426,:]
-        #print final_array[11427,:]
-        #print final_array[11428,:]
-        #print time_diff >
+
         if dates_to_mpl:
             dts = map(datetime.datetime.fromtimestamp, final_array[:,0])
             fds = dates.date2num(dts) # converted
             final_array[:,0] = fds
-            #d = np.vstack([fds.T,l[:,1].T]).T
-            
         return final_array
 
-        #print final_array.shape
-        #bad_indices = np.searchsorted(final_array)
-        #print bad_indices
-
-        assert False
 
 
 

@@ -2,6 +2,7 @@
 import sys
 import os
 import time
+import shutil
 import numpy as np
 import datetime
 import random 
@@ -67,7 +68,12 @@ def _get_temperature(src):
 
 def main():
     import temperature_db
+    import temperature_db as tdb
     session = temperature_db.Session()
+
+    # Start by consolidation:
+    import consolidate_db
+    consolidate_db.consolidate_db(session=session)
 
     # Sensor objects:
     sensors = {}
@@ -81,9 +87,11 @@ def main():
     # Main loop:
     print 'Starting main loop'
     t_start = temperature_utils.get_time() 
+    t=None
     while True:
         # Pause:
         #time.sleep(1)
+        t_prev = t
         t = temperature_utils.get_time()
 
 
@@ -109,6 +117,28 @@ def main():
 
         # Update the display:
         print '\rRecording (t=%d) [%s]' % ((t-t_start), ', '.join(('%2.2f'%t if t is not None else 'ERR') for t in temps ) ) ,
+
+
+
+
+        if t_prev is not None:
+            dt_prev = datetime.datetime.fromtimestamp(t_prev)
+            dt = datetime.datetime.fromtimestamp(t)
+            
+            # Have we written the hourly database?
+            if dt_prev.hour != dt.hour:
+                db_new_fname = tdb.db_file + dt_prev.isoformat()
+                print 'Writing database as: %', db_new_fname
+                shutil.copyfile(tdb.db_file, db_new_fname)
+                db_working = tdb.db_file + '.working'
+                if os.path.exists(db_working):
+                        os.unlink(db_working)
+                os.symlink(db_new_fname, db_working)
+            
+            # Have we consolidated the database?
+            if dt_prev.hour != dt.hour:
+                import consolidate_db
+                consolidate_db.consolidate_db(session=session)
 
         sys.stdout.flush()
 
