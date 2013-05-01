@@ -105,9 +105,10 @@ class Sensor(Base):
             print arr.shape
         final_array = np.concatenate(arrays)
 
-        time_diff = np.diff(final_array[:,0])
-        good_times = ( time_diff > 0 )
-        assert np.all(good_times)
+	print 'Danger, Danger, checking turned off!'
+        #time_diff = np.diff(final_array[:,0])
+        #good_times = ( time_diff > 0 )
+        #assert np.all(good_times)
 
         if dates_to_mpl:
             dts = map(datetime.datetime.fromtimestamp, final_array[:,0])

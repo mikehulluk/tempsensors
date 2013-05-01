@@ -17,5 +17,6 @@ sensors = session.query(tdb.Sensor).all()
 for sensor in sensors:
     print sensor
     print ' > Raw Recordings:', len(sensor.raw_recordings)
+    print ' > All Recordings:', len(sensor.get_np_array(session) )
     print ' > Errors', len(sensor.errors)
     

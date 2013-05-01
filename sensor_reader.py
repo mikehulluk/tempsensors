@@ -1,3 +1,5 @@
+#! /usr/bin/python
+
 
 import sys
 import os
@@ -7,16 +9,43 @@ import numpy as np
 import datetime
 import random 
 
-
+os.chdir('/home/pi/tempsensors/')
 
 import temperature_utils
 
 
+
 sensor_addresses = [
-    "/sys/bus/w1/devices/28-000004623b55/w1_slave",
-    "/sys/bus/w1/devices/28-00000462dfd4/w1_slave",
-    "/sys/bus/w1/devices/28-00000462a81e/w1_slave",
-    "/sys/bus/w1/devices/28-00000462f30a/w1_slave",
+# In Depth order
+"/sys/bus/w1/devices/28-00000462c0e6/w1_slave",
+"/sys/bus/w1/devices/28-00000462a81e/w1_slave",
+"/sys/bus/w1/devices/28-0000046243e9/w1_slave",
+"/sys/bus/w1/devices/28-00000462c82b/w1_slave",
+"/sys/bus/w1/devices/28-000004623232/w1_slave",
+"/sys/bus/w1/devices/28-00000462f30a/w1_slave",
+"/sys/bus/w1/devices/28-00000462dfd4/w1_slave",
+"/sys/bus/w1/devices/28-00000462a3a9/w1_slave",
+"/sys/bus/w1/devices/28-00000461e49a/w1_slave",
+
+
+#"/sys/bus/w1/devices/28-00000461e49a/w1_slave",
+#"/sys/bus/w1/devices/28-00000462a3a9/w1_slave",
+#"/sys/bus/w1/devices/28-00000462c82b/w1_slave",
+#"/sys/bus/w1/devices/28-000004623232/w1_slave",
+#"/sys/bus/w1/devices/28-00000462a81e/w1_slave",
+#"/sys/bus/w1/devices/28-00000462dfd4/w1_slave",
+#"/sys/bus/w1/devices/28-0000046243e9/w1_slave",
+#"/sys/bus/w1/devices/28-00000462c0e6/w1_slave",
+#"/sys/bus/w1/devices/28-00000462f30a/w1_slave",
+
+
+
+#    "/sys/bus/w1/devices/28-00000461e49a/w1_slave",
+#    "/sys/bus/w1/devices/28-00000462a81e/w1_slave",
+#    "/sys/bus/w1/devices/28-000004623b55/w1_slave",
+#    "/sys/bus/w1/devices/28-00000462dfd4/w1_slave",
+#    "/sys/bus/w1/devices/28-00000462a81e/w1_slave",
+#    "/sys/bus/w1/devices/28-00000462f30a/w1_slave",
 
 ]
 
@@ -76,9 +105,9 @@ def main():
     consolidate_db.consolidate_db(session=session)
 
     # Sensor objects:
-    sensors = {}
+    sensors = []
     for sensor_address in sensor_addresses:
-        sensors[sensor_address] = temperature_db.Sensor.get_or_create(address=sensor_address, session=session)
+        sensors.append( (sensor_address, temperature_db.Sensor.get_or_create(address=sensor_address, session=session) ) )
 
     # Print Sensors found:
     for sensor in session.query(temperature_db.Sensor).all():
@@ -97,7 +126,7 @@ def main():
 
         # Update all the temperature recordings:
         temps = []
-        for sensor_address, sensor in sensors.items():
+        for sensor_address, sensor in sensors:
             
             try:
                 temp = get_temperature(sensor_address)
@@ -125,8 +154,8 @@ def main():
             dt_prev = datetime.datetime.fromtimestamp(t_prev)
             dt = datetime.datetime.fromtimestamp(t)
             
-            # Have we written the hourly database?
-            if dt_prev.hour != dt.hour:
+            # Have we written the daily database?
+            if dt_prev.day != dt.day:
                 db_new_fname = tdb.db_file + dt_prev.isoformat()
                 print 'Writing database as: %', db_new_fname
                 shutil.copyfile(tdb.db_file, db_new_fname)
