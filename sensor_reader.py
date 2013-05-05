@@ -17,6 +17,7 @@ import temperature_utils
 
 sensor_addresses = [
 # In Depth order
+"/sys/bus/w1/devices/28-000004623b55/w1_slave",
 "/sys/bus/w1/devices/28-00000462c0e6/w1_slave",
 "/sys/bus/w1/devices/28-00000462a81e/w1_slave",
 "/sys/bus/w1/devices/28-0000046243e9/w1_slave",
