@@ -65,8 +65,12 @@ class BadW1Read(Exception):
 def get_temperature(src):
 
 
-    with open(src) as s1:
-        d = s1.read()
+    try:
+        with open(src) as s1:
+            d = s1.read()
+    except IOError:
+        raise BadW1Read(sensorname=src, text='IOError')
+
 
     
     with open(temp_log_file,'a') as f:
