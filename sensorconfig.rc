@@ -1,0 +1,29 @@
+
+
+[sensors]
+
+[[S0]]
+address = "/sys/bus/w1/devices/28-000004623b55/w1_slave"
+[[S1]]
+address = "/sys/bus/w1/devices/28-00000462c0e6/w1_slave"
+[[S2]]
+address = "/sys/bus/w1/devices/28-00000462a81e/w1_slave"
+[[S3]]
+address = "/sys/bus/w1/devices/28-0000046243e9/w1_slave"
+[[S4]]
+address = "/sys/bus/w1/devices/28-00000462c82b/w1_slave"
+[[S5]]
+address = "/sys/bus/w1/devices/28-000004623232/w1_slave"
+[[S6]]
+address = "/sys/bus/w1/devices/28-00000462f30a/w1_slave"
+[[S7]]
+address = "/sys/bus/w1/devices/28-00000462dfd4/w1_slave"
+[[S8]]
+address = "/sys/bus/w1/devices/28-00000462a3a9/w1_slave"
+[[S9]]
+address = "/sys/bus/w1/devices/28-00000461e49a/w1_slave"
+
+
+
+
+
