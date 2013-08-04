@@ -13,6 +13,7 @@ class SensorReaderProxy(SensorReader):
         super(SensorReaderProxy, self).__init__()
         self.last_time = datetime.datetime.now() #0 #time.time()
         self.dt = datetime.timedelta(seconds=5)
+        #self.dt = datetime.timedelta(seconds=50)
         #self.dt = datetime.timedelta(hours=3)
         self.p_error = 0.1
         self.sensor_values = { sensor:20 for sensor in self.sensor_configs }
