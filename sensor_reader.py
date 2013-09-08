@@ -24,6 +24,8 @@ class SensorReadData(object):
     def __str__(self):
         return "<SensorReadData: Time:%s %s>" %(self.timestamp, ",".join(["%s=%f"%(sensor.name, temp) for (sensor,temp) in self.temperatures]) )
 
+    
+
 
 class SensorReader(object):
 
