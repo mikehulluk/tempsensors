@@ -1,7 +1,7 @@
 
 
 
-from sensor_reader_proxy import SensorReaderProxy as SensorReader
+
 
 import pandas
 import numpy as np
@@ -11,7 +11,7 @@ import os
 import bisect
 import datetime
 
-sensors = SensorReader()
+
 
 
 from datastore import HDFStoreCache, DataConsolidator, SensorDataWriter
@@ -21,7 +21,8 @@ from datastore import HDFStoreCache, DataConsolidator, SensorDataWriter
 
 
 class SensorDataCache(object):
-    def __init__(self):
+    def __init__(self, sensors):
+        self.sensors = sensors
         self.unprocessed_sensor_states = []
         self.daily_data_frame = None
 
@@ -29,7 +30,7 @@ class SensorDataCache(object):
     def write_cache_to_data_frame(self):
         # A. Create into a new data_frame:
         # ( Convert into {'S0': [....], 'S1': [....] ...}
-        sensor_data = { sensor.name: [ sensor_state.temperatures[index][1] for sensor_state in self.unprocessed_sensor_states]  for index, sensor in enumerate(sensors.sensor_configs) }
+        sensor_data = { sensor.name: [ sensor_state.temperatures[index][1] for sensor_state in self.unprocessed_sensor_states]  for index, sensor in enumerate(self.sensors.sensor_configs) }
         times = [ sensor_state.timestamp for sensor_state in self.unprocessed_sensor_states]
         new_data_frame = pandas.DataFrame( sensor_data, times )
 
@@ -91,12 +92,21 @@ class SensorDataCache(object):
 
 
 
-def do_rundaemon():
-
+def do_rundaemon(args=None):
+    
+    
+    if args.daemon_is_dummy:
+        from sensor_reader_proxy import SensorReaderProxy as SensorReader
+    else:
+        from sensor_reader_proxy import SensorReader as SensorReader
+    
+    assert False
+    
+    sensors = SensorReader()
     data_consolidator = DataConsolidator()
     last_state = None
-    sensor_data_cache = SensorDataCache()
-    for i in range(5000000):
+    sensor_data_cache = SensorDataCache(sensors)
+    for i in itertools.count():
         sensor_state = sensors.read()
         sensor_data_cache.add(sensor_state)
 
@@ -104,6 +114,10 @@ def do_rundaemon():
             data_consolidator.build_monthly_data(src_downsample='5min',  year=last_state.timestamp.year, month=last_state.timestamp.month)
 
         last_state = sensor_state
+
+        # Break if generating dummy data:
+        if args.daemon_is_dummy and i > 5000000:
+            break
 
 
 if __name__=='__main__':

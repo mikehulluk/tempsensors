@@ -26,9 +26,7 @@ class SensorReaderProxy(SensorReader):
         self.sensor_values = {sensor:temp+random.normalvariate(0,0.2) for (sensor,temp) in self.sensor_values.items()}
 
         sensor_read = [ (sensor, (self.sensor_values[sensor] if random.uniform(0,1) > self.p_error else None)) for sensor in self.sensor_configs ]
-        #print sensor_read
-
-
+        
         results = SensorReadData(timestamp = self.last_time,
                 temperatures =  sensor_read
                 )
