@@ -10,7 +10,7 @@ import glob
 import os
 import bisect
 import datetime
-
+import itertools
 
 
 
@@ -54,12 +54,12 @@ class SensorDataCache(object):
         # Write to HDF5:
         SensorDataWriter.write_hdf5_raw( self.daily_data_frame,  'output/daily/raw/hdf5/%s.hdf5' % date_string )
         SensorDataWriter.write_hdf5_5min( self.daily_data_frame, 'output/daily/5min/hdf5/%s.hdf5' % date_string)
-        SensorDataWriter.write_hdf5_1hr( self.daily_data_frame,  'output/daily/1H/hdf5/%s.hdf5' % date_string)
+        SensorDataWriter.write_hdf5_1H( self.daily_data_frame,  'output/daily/1H/hdf5/%s.hdf5' % date_string)
 
 
         #SensorDataWriter.write_excel_raw( self.daily_data_frame,  'output/daily/raw/excel/%s.xls' % date_string)
         SensorDataWriter.write_excel_5min( self.daily_data_frame, 'output/daily/5min/excel/%s.xls' % date_string)
-        SensorDataWriter.write_excel_1hr( self.daily_data_frame,  'output/daily/1H/excel/%s.xls' % date_string)
+        SensorDataWriter.write_excel_1H( self.daily_data_frame,  'output/daily/1H/excel/%s.xls' % date_string)
 
 
 
@@ -100,8 +100,6 @@ def do_rundaemon(args=None):
     else:
         from sensor_reader_proxy import SensorReader as SensorReader
     
-    assert False
-    
     sensors = SensorReader()
     data_consolidator = DataConsolidator()
     last_state = None
@@ -116,7 +114,7 @@ def do_rundaemon(args=None):
         last_state = sensor_state
 
         # Break if generating dummy data:
-        if args.daemon_is_dummy and i > 5000000:
+        if args.daemon_is_dummy and i > 50000:
             break
 
 

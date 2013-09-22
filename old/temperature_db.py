@@ -43,7 +43,8 @@ if hostname == 'michael-MacBookPro':
     db_file = files[-1]
     print files[0], files[-1]
 
-
+elif hostname == 'michael-GA-MA790FX-DQ6':
+    db_file = 'previous_data/temps.sqllite'
 elif hostname == 'raspberrypi':
     db_file = os.path.join(db_data_dir, 'temps.sqllite')
 else:
@@ -94,21 +95,21 @@ class Sensor(Base):
 
 
         # Get the raw_recording points:
-        print 'Raw recordings'
+        #print 'Raw recordings'
         Q = self.Q_raw_recordings_in_range(session=session, start=start, end=end)
         if Q.count() > 0:
             rr = np.array([ (r.time, r.temperature) for r in Q.all()])
             arrays.append(rr)
 
-        print 'Arrays useds'
-        for arr in arrays:
-            print arr.shape
+        #print 'Arrays useds'
+        #for arr in arrays:
+        #    print arr.shape
         final_array = np.concatenate(arrays)
 
-	print 'Danger, Danger, checking turned off!'
-        #time_diff = np.diff(final_array[:,0])
-        #good_times = ( time_diff > 0 )
-        #assert np.all(good_times)
+        #print 'Danger, Danger, checking turned off!'
+        time_diff = np.diff(final_array[:,0])
+        good_times = ( time_diff > 0 )
+        assert np.all(good_times)
 
         if dates_to_mpl:
             dts = map(datetime.datetime.fromtimestamp, final_array[:,0])

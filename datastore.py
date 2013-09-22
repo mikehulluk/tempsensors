@@ -17,8 +17,7 @@ def ensure_file_location_exists(fname):
 
 
 class SensorDataWriter(object):
-        #os.path.getsize(output_file)
-        ##print " -- %s (Size: %2.2fMB)" % (output_file, float( os.path.getsize(output_file) ) /1e6 )
+
     @classmethod
     def write_hdf5_raw(cls, dataframe, filename):
         ensure_file_location_exists(filename)
@@ -33,7 +32,7 @@ class SensorDataWriter(object):
             store['sensor_data'] = dataframe
 
     @classmethod
-    def write_hdf5_1hr(cls, dataframe, filename):
+    def write_hdf5_1H(cls, dataframe, filename):
         dataframe = dataframe.resample('1H')
         ensure_file_location_exists(filename)
         with pandas.get_store(filename) as store:
@@ -49,7 +48,7 @@ class SensorDataWriter(object):
         ensure_file_location_exists(filename)
         dataframe.to_excel(filename)
     @classmethod
-    def write_excel_1hr(cls, dataframe, filename):
+    def write_excel_1H(cls, dataframe, filename):
         dataframe = dataframe.resample('1H')
         ensure_file_location_exists(filename)
         dataframe.to_excel(filename)
@@ -70,15 +69,15 @@ class HDFStoreCache(object):
         print 'glob_string', self.raw_dir + "*.hdf5"
         for filename in sorted(glob.glob(self.raw_dir + "*.hdf5")):
             if filename in self._cached_filenames:
-                print '(Existing: %s)' % filename
+                print '(Cached: %s)' % filename
                 continue
-
-            with pandas.get_store(filename) as store:
-                print 'New File:', filename
-                print store['sensor_data']
-                times = store['sensor_data'].index.to_pydatetime()
-                self._cached_ranges.append( (filename, times[0], times[-1] ) )
-                self._cached_filenames.add(filename)
+            else:
+                with pandas.get_store(filename) as store:
+                    print 'Loading from FS:', filename
+                    #print store['sensor_data']
+                    times = store['sensor_data'].index.to_pydatetime()
+                    self._cached_ranges.append( (filename, times[0], times[-1] ) )
+                    self._cached_filenames.add(filename)
 
         # Sanity check - are we still in order?
         prev = None
@@ -173,7 +172,7 @@ class DataConsolidator(object):
 
         date_string = "%d-%02d"% (year, month)
         SensorDataWriter.write_excel_5min( df, 'output/monthly/5min/excel/%s.xls' % date_string)
-        SensorDataWriter.write_excel_1hr( df, 'output/monthly/1hr/excel/%s.xls' % date_string)
+        SensorDataWriter.write_excel_1H( df, 'output/monthly/1H/excel/%s.xls' % date_string)
 
         return df
 
